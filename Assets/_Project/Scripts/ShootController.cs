@@ -6,18 +6,19 @@ public class ShootController : MonoBehaviour
     [SerializeField] Transform firePoint;
     [SerializeField] float fireRate = 0.5f;
 
-    float timer;
+    private float _timer;
+
     private void Update()
     {
-        timer += Time.deltaTime;
-        if(timer >= fireRate)
+        _timer += Time.deltaTime;
+        if(_timer >= fireRate)
         {
             Shoot();
-            timer = 0f;
+            _timer = 0f;
         }
     }
     void Shoot()
     {
-        Instantiate(bullet, firePoint.position, Quaternion.identity);
+        Instantiate(bullet, firePoint.transform.position, Quaternion.identity);
     }
 }
