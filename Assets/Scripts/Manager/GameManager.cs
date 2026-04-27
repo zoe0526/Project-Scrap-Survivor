@@ -19,7 +19,6 @@ public class GameManager : MonoBehaviour
             Instance = this;
         else 
             Destroy(gameObject);
-
     }
     public void AddExp(float amount)
     {
@@ -40,6 +39,6 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"[레벨업!] 현재 레벨: {currentLevel}");
 
-        UIManager.Instance.skillPanel.OnShow();
+        UIManager.Instance.ShowPopup(UIManager.Instance.PopupManager.SkillPanel);
     }
 }

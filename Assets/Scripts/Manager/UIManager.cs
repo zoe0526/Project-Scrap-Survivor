@@ -3,10 +3,8 @@ using UnityEngine;
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
-    [Header("UI 패널 연결")]
-    [SerializeField] private SkillSelectPopup _skillPanel;
-    public SkillSelectPopup skillPanel { get { return _skillPanel; } set { _skillPanel = value; } }
-
+    [SerializeField] private PopupManager _popupManager;
+    public PopupManager PopupManager => _popupManager;
 
     private void Awake()
     {
@@ -14,5 +12,9 @@ public class UIManager : MonoBehaviour
             Instance = this;
         else
             Destroy(gameObject);
+    }
+    public void ShowPopup(PopupBase popup)
+    {
+        popup.OnShow();
     }
 }

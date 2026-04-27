@@ -2,11 +2,10 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] public GridManager gridManager;
+    private GridManager gridManager;
 
-    [Header("로봇 상태")]
-    public int currentX = 2;
-    public int currentY = 0;
+    private int _currentX = 2;
+    private int _currentY = -2;
 
     [Header("조작감 세팅 (숫자로 부드러움 조절)")]
     public float moveSpeed = 15f;
@@ -20,9 +19,10 @@ public class PlayerController : MonoBehaviour
         if (GameManager.Instance != null)
             GameManager.Instance.playerController = this;
 
+        gridManager = GridManager.Instance;
         // 시작할 때 목표 위치를 정중앙으로 세팅
-        _targetX = gridManager.GetWorldPosition(currentX, currentY).x;
-        transform.position = new Vector2(_targetX, gridManager.GetWorldPosition(currentX, currentY).y);
+        _targetX = gridManager.GetWorldPosition(_currentX, _currentY).x;
+        transform.position = new Vector2(_targetX,_currentY);
     }
 
     void Update()
@@ -47,8 +47,8 @@ public class PlayerController : MonoBehaviour
             _targetX = Camera.main.ScreenToWorldPoint(Input.mousePosition).x;
 
             // 로봇이 게임판 밖으로 나가지 못하게 가두기
-            float minX = gridManager.GetWorldPosition(0, currentY).x;
-            float maxX = gridManager.GetWorldPosition(gridManager.width - 1, currentY).x;
+            float minX = gridManager.GetWorldPosition(0, _currentY).x;
+            float maxX = gridManager.GetWorldPosition(gridManager.Width - 1, _currentY).x;
             _targetX = Mathf.Clamp(_targetX, minX, maxX);
         }
 
@@ -64,12 +64,12 @@ public class PlayerController : MonoBehaviour
     void SnapToClosestLane()
     {
         float minDistance = float.MaxValue;
-        int closestX = currentX;
+        int closestX = _currentX;
 
         // 0번부터 4번 레인 중 어디가 내 로봇이랑 제일 가까운지 검사
-        for (int x = 0; x < gridManager.width; x++)
+        for (int x = 0; x < gridManager.Width; x++)
         {
-            float laneX = gridManager.GetWorldPosition(x, currentY).x;
+            float laneX = gridManager.GetWorldPosition(x, _currentY).x;
             float distance = Mathf.Abs(_targetX - laneX);
 
             if (distance < minDistance)
@@ -81,9 +81,9 @@ public class PlayerController : MonoBehaviour
         }
 
         // 제일 가까운 레인으로 데이터 확정
-        currentX = closestX;
+        _currentX = closestX;
         // 목표 위치를 그 레인의 '정중앙'으로 덮어쓰기
-        _targetX = gridManager.GetWorldPosition(currentX, currentY).x;
+        _targetX = gridManager.GetWorldPosition(_currentX, _currentY).x;
     }
 
     // 3. 실제로 로봇 이동
@@ -93,7 +93,7 @@ public class PlayerController : MonoBehaviour
         // 현재 위치에서 목표 위치로 미끄러지듯 이동
         float newX = Mathf.Lerp(transform.position.x, _targetX, Time.deltaTime * currentSpeed);
         // Y축은 맨 아래 고정
-        float fixedY = gridManager.GetWorldPosition(currentX, currentY).y;
+        float fixedY = gridManager.GetWorldPosition(_currentX, _currentY).y;
 
         transform.position = new Vector2(newX, fixedY);
     }

@@ -4,13 +4,17 @@ using System.Linq;
 public class BeamWeapon : MonoBehaviour
 {
     [Header("무기 상태")]
-    [SerializeField] private EBlockColor currMode = EBlockColor.Red;  //기본 빔 색은 빨강
+    [SerializeField] private EBlockColor _currMode = EBlockColor.Red;  //기본 빔 색은 빨강
 
     [Header("시각 효과")]
-    [SerializeField] private LineRenderer lineRenderer;
+    [SerializeField] private LineRenderer _lineRenderer;
 
     [Header("빔 값 설정")]
-    [SerializeField] private float beamSpeed = 40f;
+    [SerializeField] private float _beamSpeed = 40f;
+    //블록 파괴 성공시 딜레이 시간
+    private float _fireRate = .2f;
+    private float _fireTimer = 0f;
+
     private Vector2 _currEndPos;
 
     private void Start()
@@ -23,15 +27,14 @@ public class BeamWeapon : MonoBehaviour
 
     void FireBeam()
     {
-        lineRenderer.enabled = true;
-
+        _lineRenderer.enabled = true;
         Vector2 startPos = transform.position;
-        lineRenderer.SetPosition(0,startPos);
+        _lineRenderer.SetPosition(0,startPos);
+
         // 위쪽 레이저를 쏴서 닿는 모든 것을 저장
         RaycastHit2D[] rayCastHits = Physics2D.RaycastAll(transform.position, Vector2.up,20f);  //그리드 크기 바뀌면 설정 확인
-
         // 맞은 물체들을 아래에서 위 순서로 정렬
-        rayCastHits = rayCastHits.OrderBy(r=>r.distance).ToArray();
+        System.Array.Sort(rayCastHits,(a,b)=>a.distance.CompareTo(b.distance));
 
         Vector2 targetEndPos = startPos + Vector2.up * 20f;
         Block targetBlock = null;
@@ -40,7 +43,7 @@ public class BeamWeapon : MonoBehaviour
             Block block = hit.collider.GetComponent<Block>();
             if (block == null)
                 continue;
-            if (block.myColor == currMode)
+            if (block.MyColor == _currMode)
                 continue;
 
             targetBlock = block;
@@ -58,15 +61,16 @@ public class BeamWeapon : MonoBehaviour
         else
         {
             //위에 블록 없을경우 광선을 서서히 뻗는다.
-            _currEndPos.y = Mathf.MoveTowards(_currEndPos.y, targetEndPos.y,beamSpeed * Time.deltaTime);
+            _currEndPos.y = Mathf.MoveTowards(_currEndPos.y, targetEndPos.y, _beamSpeed * Time.deltaTime);
         }
 
         //빔이 타겟 도달시 블록 파괴
         if(targetBlock!=null && _currEndPos.y>= targetEndPos.y-0.05f)
         {
             targetBlock.TakeDamage(1);
+            _fireTimer = Time.time + _fireRate;
         }
-        lineRenderer.SetPosition(1, _currEndPos);
+        _lineRenderer.SetPosition(1, _currEndPos);
     }
 
     #region 스킬 업그레이드 함수들
@@ -74,15 +78,15 @@ public class BeamWeapon : MonoBehaviour
     //1. 빔 속도 증가
     public void UpgradeBeamSpeed(float amount)
     {
-        beamSpeed += amount;
-        Debug.Log($"[업그레이드] 빔 스피드 증가! 현재: {beamSpeed}");
+        _beamSpeed += amount;
+        Debug.Log($"[업그레이드] 빔 스피드 증가! 현재: {_beamSpeed}");
     }
     // 2. 빔 굵기 증가
     public void UpgradeBeamWidth(float amount)
     {
-        lineRenderer.startWidth += amount;
-        lineRenderer.endWidth += amount;
-        Debug.Log($"[업그레이드] 빔 굵기 증가! 현재: {lineRenderer.startWidth}");
+        _lineRenderer.startWidth += amount;
+        _lineRenderer.endWidth += amount;
+        Debug.Log($"[업그레이드] 빔 굵기 증가! 현재: {_lineRenderer.startWidth}");
     }
     #endregion
 
@@ -90,11 +94,17 @@ public class BeamWeapon : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            FireBeam();
+            if(Time.time < _fireTimer)
+            {
+                _lineRenderer.enabled = false;
+                _currEndPos = transform.position;
+            }
+            else
+                FireBeam();
         }
         else
         {
-            lineRenderer.enabled = false; // 손을 떼면 빔 끄기
+            _lineRenderer.enabled = false; // 손을 떼면 빔 끄기
             _currEndPos = transform.position;
         }
     }
