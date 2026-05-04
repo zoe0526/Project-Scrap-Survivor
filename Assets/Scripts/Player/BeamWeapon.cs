@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Linq;
 
 public class BeamWeapon : MonoBehaviour
 {
@@ -43,7 +42,7 @@ public class BeamWeapon : MonoBehaviour
             Block block = hit.collider.GetComponent<Block>();
             if (block == null)
                 continue;
-            if (block.MyColor == _currMode)
+            if (block.Color == _currMode)
                 continue;
 
             targetBlock = block;
@@ -67,6 +66,8 @@ public class BeamWeapon : MonoBehaviour
         //빔이 타겟 도달시 블록 파괴
         if(targetBlock!=null && _currEndPos.y>= targetEndPos.y-0.05f)
         {
+            if (System.Enum.TryParse<EEffect>(EEffect.Hit_Spark_Eff.ToString(), out EEffect effect))
+                EffectManager.Instance.PlayEffect(effect, targetEndPos);
             targetBlock.TakeDamage(1);
             _fireTimer = Time.time + _fireRate;
         }

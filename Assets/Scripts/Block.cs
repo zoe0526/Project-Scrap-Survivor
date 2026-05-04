@@ -7,21 +7,20 @@ public enum EBlockColor
     Red,
     Green,
     Blue,
-    Yellow
+    Yellow,
+    None
 };
 
 public class Block : MonoBehaviour
 {
-    private EBlockColor _myColor;
-    public EBlockColor MyColor => _myColor;
+    private EBlockColor _color;
+    public EBlockColor Color => _color;
     [Header("블록 색상별")]
     [SerializeField] private Sprite[] _blockSpriteArr;
-    
+
     [Header("파괴 효과 및 보상")]
-    [SerializeField] private GameObject explosionPrefab;
     [SerializeField] private GameObject dropItemPrefab;
 
-    [SerializeField] private int _hp = 1;
 
     [Header("시각적 요소들")]
     private TextMeshPro _hpText;
@@ -29,23 +28,31 @@ public class Block : MonoBehaviour
     private Shader _originalShader;
     private Shader _whiteShader;
 
-    private int _xCoord = -1;
-    private int _yCoord = -1;
-    public int XCoord => _xCoord;
-    public int YCoord => _yCoord;
-
+    public int XCoord { get; private set; }
+    public int YCoord { get; private set; }
+    private int _hp;
+    private Coroutine _moveCoroutine;
     private void Awake()
     {
         _hpText = transform.Find("HPText").GetComponent<TextMeshPro>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalShader = _spriteRenderer.material.shader;
         _whiteShader = Shader.Find("GUI/Text Shader");
-        SetCoordinate(-1, -1);
+    }
+    public void Init(int startHP, EBlockColor color)
+    {
+        _hp = startHP;
         UpdateHPText();
+        SetColor(color);
+    }
+    public void UpdateCoordinate(int x, int y)
+    {
+        XCoord = x;
+        YCoord = y;
     }
     public void SetColor(EBlockColor color)
     {
-        _myColor = color;
+        _color = color;
         _spriteRenderer.sprite = _blockSpriteArr[(int)color];
     }
     void UpdateHPText()
@@ -66,38 +73,53 @@ public class Block : MonoBehaviour
             _spriteRenderer.material.shader = _originalShader;
         }
     }
-    public void SetCoordinate(int x, int y)
+    public void MoveToPosition(Vector3 targetPos, float duration = 0.15f)
     {
-        _xCoord = x;
-        _yCoord = y;
+        if (_moveCoroutine != null)
+            StopCoroutine(_moveCoroutine);
+        _moveCoroutine = StartCoroutine(MoveRoutine(targetPos, duration));
+    }
+    IEnumerator MoveRoutine(Vector3 targetPos, float duration)
+    {
+        Vector3 startPos = transform.position;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            transform.position = Vector3.Lerp(startPos, targetPos, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.position = targetPos;
     }
     public void TakeDamage(int damage)
     {
         _hp -= damage;
         UpdateHPText();
         StartCoroutine(HitFlashCoroutine());
-        if(_hp <= 0 )
+        if (_hp <= 0)
         {
             Die();
         }
     }
     void Die()
     {
-        // 1. 폭발 이펙트 생성
-        if (explosionPrefab != null)
-        {
-            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-        }
-
         // 2. 고철(경험치) 아이템 드롭
         if (dropItemPrefab != null)
         {
             Instantiate(dropItemPrefab, transform.position, Quaternion.identity);
         }
-
-        // 3. 자기 자신 파괴
-        GridManager.Instance.RemoveBlock(this);
-        Destroy(gameObject);
+        //3. 자신 폭발 및 연쇄폭발
+        GridManager.Instance.StartCoroutine(GridManager.Instance.ExecuteChainReactionRoutine(this));
+        DieEffect();
     }
+    public void DieEffect()
+    {
+        // 1. 폭발 이펙트 생성
+        string EffStr = "Explode_Block_" + _color.ToString() + "_Eff";
+        if (System.Enum.TryParse<EEffect>(EffStr, out EEffect effect))
+            EffectManager.Instance.PlayEffect(effect, transform.position);
 
+        BlockPoolManager.Instance.ReturnToPool(gameObject); // 창고로 반납
+    }
 }
