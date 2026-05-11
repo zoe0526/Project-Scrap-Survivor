@@ -63,8 +63,8 @@ public class GridManager : MonoBehaviour
                 randomColor = Random.Range(0, 4);
                 // 가로로만 3연속 같은 색인지 검사
                 isHorizontalMatch = (x >= 2 &&
-                       _grid[x - 1, y] != null && (int)_grid[x - 1, y].Color == randomColor &&
-                       _grid[x - 2, y] != null && (int)_grid[x - 2, y].Color == randomColor);
+                       _grid[x - 1, y] != null && (int)_grid[x - 1, y].MyBlockData.type == randomColor &&
+                       _grid[x - 2, y] != null && (int)_grid[x - 2, y].MyBlockData.type == randomColor);
             }
             while (isHorizontalMatch);
 
@@ -72,7 +72,7 @@ public class GridManager : MonoBehaviour
 
             Block newBlock = BlockPoolManager.Instance.Get().GetComponent<Block>();
             newBlock.transform.SetParent(_blockRoot);
-            newBlock.Init(2, (EBlockColor)randomColor);
+            newBlock.Init(2, (EBlockType)randomColor);
             newBlock.transform.position = spawnPos;
 
             SetGrid(x, y, newBlock);
@@ -171,7 +171,6 @@ public class GridManager : MonoBehaviour
 
         int startX = startBlock.XCoord;
         int startY = startBlock.YCoord;
-        EBlockColor blockColor = startBlock.Color;
 
         Queue<Block> queue = new Queue<Block>();
         bool[,] visited = new bool[_width, _height]; // 이미 검사한 곳인지 체크
@@ -197,7 +196,7 @@ public class GridManager : MonoBehaviour
                     Block neighbor = _grid[nx, ny];
 
                     // 그 자리에 블록이 있고, 색깔마저 똑같다면!
-                    if (neighbor != null && neighbor.Color == blockColor)
+                    if (neighbor != null && neighbor.MyBlockData.type == startBlock.MyBlockData.type)
                     {
                         visited[nx, ny] = true; // 출석 체크
                         queue.Enqueue(neighbor); // 너도 내 동료가 되라 (다음 탐색 대상)

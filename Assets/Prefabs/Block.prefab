@@ -106,14 +106,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 000ffee0ebc386d44bce806cb4ba37dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Block
-  _blockSpriteArr:
-  - {fileID: 2037375613427717391, guid: 37739df81317850419f5dd6937a64bed, type: 3}
-  - {fileID: 1769537201474644757, guid: 37739df81317850419f5dd6937a64bed, type: 3}
-  - {fileID: -1846585403190870204, guid: 37739df81317850419f5dd6937a64bed, type: 3}
-  - {fileID: -4714357989247979001, guid: 37739df81317850419f5dd6937a64bed, type: 3}
-  explosionPrefab: {fileID: 7823163073777858674, guid: 7628a0c1374c2fe41a3886c696966895, type: 3}
+  _blockConfig: {fileID: 11400000, guid: e4c62d3d161005942b0e8ab613238cf7, type: 2}
   dropItemPrefab: {fileID: 6810111849339749360, guid: 24626ebcc679f2f40984b37138d0a7dc, type: 3}
-  _hp: 2
 --- !u!61 &2803725737156949924
 BoxCollider2D:
   m_ObjectHideFlags: 0

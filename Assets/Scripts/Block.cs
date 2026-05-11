@@ -2,21 +2,13 @@ using UnityEngine;
 using TMPro;
 using System.Collections;
 
-public enum EBlockColor
-{
-    Red,
-    Green,
-    Blue,
-    Yellow,
-    None
-};
-
 public class Block : MonoBehaviour
 {
-    private EBlockColor _color;
-    public EBlockColor Color => _color;
-    [Header("블록 색상별")]
-    [SerializeField] private Sprite[] _blockSpriteArr;
+    private BlockData _myBlockData;
+    public BlockData MyBlockData => _myBlockData;
+
+    [Header("블록 정보 사전")]
+    [SerializeField] private BlockConfig _blockConfig;
 
     [Header("파괴 효과 및 보상")]
     [SerializeField] private GameObject dropItemPrefab;
@@ -39,21 +31,21 @@ public class Block : MonoBehaviour
         _originalShader = _spriteRenderer.material.shader;
         _whiteShader = Shader.Find("GUI/Text Shader");
     }
-    public void Init(int startHP, EBlockColor color)
+    public void Init(int startHP, EBlockType blocktype)
     {
         _hp = startHP;
         UpdateHPText();
-        SetColor(color);
+        SetBlock(blocktype);
     }
     public void UpdateCoordinate(int x, int y)
     {
         XCoord = x;
         YCoord = y;
     }
-    public void SetColor(EBlockColor color)
+    public void SetBlock(EBlockType type)
     {
-        _color = color;
-        _spriteRenderer.sprite = _blockSpriteArr[(int)color];
+        _myBlockData = _blockConfig.GetData(type);
+        _spriteRenderer.sprite = _myBlockData.sprite;
     }
     void UpdateHPText()
     {
@@ -116,7 +108,7 @@ public class Block : MonoBehaviour
     public void DieEffect()
     {
         // 1. 폭발 이펙트 생성
-        string EffStr = "Explode_Block_" + _color.ToString() + "_Eff";
+        string EffStr = "Explode_Block_" + _myBlockData.color.ToString() + "_Eff";
         if (System.Enum.TryParse<EEffect>(EffStr, out EEffect effect))
             EffectManager.Instance.PlayEffect(effect, transform.position);
 

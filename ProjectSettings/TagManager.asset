@@ -45,5 +45,8 @@ TagManager:
   - name: DropItem
     uniqueID: 2407376295
     locked: 0
+  - name: Effect
+    uniqueID: 1452598477
+    locked: 0
   m_RenderingLayers:
   - Default
